@@ -10,7 +10,7 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 # add dependency
 
 include_directories(/usr/local/include ../../efnfw ../../common/include)
-link_directories(/usr/local/lib /home/lib)
+LINK_DIRECTORIES(${PROJECT_SOURCE_DIR}/../common/lib ${PROJECT_SOURCE_DIR}/../efnfw/lib /usr/local/lib)
 
 link_libraries(common efnfw hiredis zookeeper_mt protobuf jsoncpp pthread) 
 
