@@ -59,14 +59,16 @@ namespace gim
 
 		virtual int onDataChange(int ver, const std::string& data){
 
-			DataWatcherBase::onDataChange(ver, data);	
+			int ret = 0;
 
 			if(getData() != data && m_ctx){
 
-				return (m_ctx->*m_cb)(ver, data);	
+				ret = (m_ctx->*m_cb)(ver, data);	
 			}
 
-			return 0;
+			DataWatcherBase::onDataChange(ver, data);	
+
+			return ret;
 		}
 
 	private:
