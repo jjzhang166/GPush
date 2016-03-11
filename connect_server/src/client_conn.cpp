@@ -158,8 +158,21 @@ int CliCon::handleLoginRequest(const head& h, const string& req,
 	string tk;
 	string sessid;
 	string enctk;
+	string decreq;
+	string encsessid;
 
-	if(!lgreq.ParseFromArray(req.data(), req.size())){
+	if(m_conf->Enc){
+		//decrypt by RSAPrivate
+		ret = m_conf->RSAs->privateKeyDecrypt(req, decreq);
+		if(ret < 0){
+			ret = DECRYPT_FAIL;
+			goto exit;
+		}
+	}else{
+		decreq = req;
+	}
+
+	if(!lgreq.ParseFromArray(decreq.data(), decreq.size())){
 		ret = INPUT_FORMAT_ERROR;
 		goto exit;
 	}
@@ -167,7 +180,7 @@ int CliCon::handleLoginRequest(const head& h, const string& req,
 	if(m_status == STATUS_LOGIN){
 		goto exit;
 	}
-
+	
 	m_login_time = time(NULL);	
 	m_sess.set_id(lgreq.id());
 	m_sess.set_type(lgreq.type());
@@ -182,8 +195,23 @@ int CliCon::handleLoginRequest(const head& h, const string& req,
 	}
 
 	decorationName(m_serv->getConfig().ID, getId(), lgreq.id(), sessid);
+
+	if(m_conf->Enc){
+		//encrypt by RSAPrivate
+		ret = m_conf->RSAs->privateKeyEncrypt(sessid, encsessid);
+		if(ret < 0){
+			ret = INNER_ERROR;
+			goto exit;
+		}
+
+	}else{
+		encsessid = sessid;
+	}
+
 	m_sess.set_sessid(sessid);
 
+	m_key = lgreq.token() + sessid;
+	//std::cout << "m_key:" << m_key << std::endl;
 
 	for(; i < lgreq.kvs_size(); ++i){
 		*(m_sess.add_kvs()) = lgreq.kvs(i);
@@ -206,7 +234,7 @@ exit:
 		lgresp.set_status(0);
 	}
 
-	lgresp.set_sessid(m_sess.sessid());
+	lgresp.set_sessid(base64Encode(encsessid));
 
 	lgresp.SerializeToString(&resp);
 	ALogError("ConnectServer") << "<action:client_login> <id:" 
@@ -267,15 +295,25 @@ exit:
 int CliCon::sendCmd(int cmd, const string& body){
 	string req_enc;
 	string msg;
+	if((cmd == PUSH_REQ || cmd == PUSH_RESP) 
+		&& body.size()){
+		int ret = encryptBody(body, req_enc);
+		if(ret < 0){
+			return ret;
+		}
+	}else{
+		req_enc = body;
+	}
+
 	head h;
 	h.cmd = cmd;
 	h.magic = MAGIC_NUMBER;
-	constructPacket(h, body, msg);
+	constructPacket(h, req_enc, msg);
 	return sendMessage(msg);
 }
 
 int CliCon::handlePushRequest(const head& h, const string& req, 
-	string& resp){
+	string& encresp){
 	TimeRecorder t("CliCon::handlePushRequest");
 
 	int ret = 0;
@@ -287,6 +325,7 @@ int CliCon::handlePushRequest(const head& h, const string& req,
 	PushResponse svresp;
 	PushRequest svreq;
 	string id;
+	string resp;
 
 	svresp.set_from_sessid("NULL");
 	svresp.set_to_sessid("NULL");
@@ -343,6 +382,30 @@ exit:
 	return ret;
 }
 
+int CliCon::decryptBody(const std::string& in, std::string& out){
+	int ret = 0;
+
+	if(m_conf->Enc){
+		ret = aesDecrypt(in, m_key, out);	
+	}else{
+		out = in;
+	}
+
+	return ret;
+}
+
+int CliCon::encryptBody(const std::string& in, std::string& out){
+	int ret = 0;
+
+	if(m_conf->Enc){
+		ret = aesEncrypt(in, m_key, out);	
+	}else{
+		out = in;
+	}
+
+	return ret;
+}
+
 int32 CliCon::handlePushResponse(const head& h, 
 		const string& req){
 	TimeRecorder t("SrvCon::handlePushResponse");
@@ -353,7 +416,15 @@ int32 CliCon::handlePushResponse(const head& h,
 	EventLoop* l = NULL;
 	SendMsgOp* op = NULL;
 
-	if(!svresp.ParseFromArray(req.data(), req.size())){
+	string decreq;
+
+	ret = decryptBody(req, decreq);
+
+	if(ret < 0){
+		ret = DECRYPT_FAIL; 
+	}
+
+	if(!svresp.ParseFromArray(decreq.data(), decreq.size())){
 		ret = INPUT_FORMAT_ERROR;	
 		goto exit;
 	}

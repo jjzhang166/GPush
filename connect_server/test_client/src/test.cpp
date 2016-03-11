@@ -4,6 +4,8 @@
 #include "base/ef_log.h"
 #include "base/ef_aes.h"
 #include "base/ef_md5.h"
+#include "base/ef_rsa.h"
+#include "base/ef_base64.h"
 #include "msg_head.h"
 #include "ef_crypt.h"
 #include <iostream>
@@ -91,11 +93,11 @@ public:
 		int32 ret = 0;
 		LoginRequest lgr;
 
-		string enctk;
+		string enctk = token;
 
-		if(token.size()){
-			ef::encrypt(token, enctk);	
-		}	
+		//if(token.size()){
+		//	ef::encrypt(token, enctk);	
+		//}	
 
 		lgr.set_id(cid);		
 		lgr.set_type(-1);
@@ -106,10 +108,22 @@ public:
 		m_token = token;
 		LoginResponse lgresp;
 		std::string req;
+		std::string encreq;
 		lgr.SerializeToString(&req);	
+		ret = encryptByPublicKey(req, encreq);	
+
+		if(ret < 0){
+			LOG_OUT << "test_login encryptByPublicKey fail, cid:" << m_cid 
+				<< std::endl;
+			return  ret;
+		}
+
+		LOG_OUT << "test_login encryptByPublicKey success, cid:" << m_cid 
+			<< "req.size():" << req.size() << ", encreq.size():" 
+			<< encreq.size() << std::endl;
 	
 		std::string rsp;
-		ret = send_req(100, req);
+		ret = send_req(100, encreq);
 
 		if(ret < 0){
 			LOG_OUT << "test_login send fail, cid:" << m_cid 
@@ -126,19 +140,28 @@ public:
 		}
 
 		lgresp.ParseFromString(rsp);
-		if(lgresp.status() == 0){
-			LOG_OUT << "test_login success: cid:" << m_cid 
-				<< ", sessid:" << lgresp.sessid() << std::endl;	
-		}else{
+
+		if(lgresp.status() < 0){
 			LOG_OUT << "test_login fail: cid:" << m_cid 
 				<< ", status:" 
 				<< lgresp.status() << std::endl;	
 			return -1;
 		}
-		m_sessid = lgresp.sessid();
+
+		ret = decryptByPublicKey(base64Decode(lgresp.sessid()), m_sessid);
+
+		if(ret < 0){
+			LOG_OUT << "test_login decryptByPublicKey fail, cid:" << m_cid 
+				<< std::endl;
+			return  ret;
+		}
+
+		LOG_OUT << "test_login success: cid:" << m_cid 
+			<< ", sessid:" <<  m_sessid << std::endl;	
+
 		++success_count;
 		if(token.size()){
-			m_key = token + m_sessid;
+			m_key = enctk + m_sessid;
 		}
 		return	ret;
 	}
@@ -218,12 +241,34 @@ public:
 
 	}
 
+	int32	decrypt_body(const std::string& in, std::string& out){
+		int ret = 0;
+		aesDecrypt(in, m_key, out);	
+		return ret;			
+	}
+
+	int32	encrypt_body(const std::string& in, std::string& out){
+		int ret = 0;
+		aesEncrypt(in, m_key, out);	
+		return ret;
+	}
+
 	int32   handle_service_request(const std::string& resp){
 		int32 ret = 0;
 		PushRequest svreq;
 		std::string outpayload;
 		++total_recv_req;
-		if(!svreq.ParseFromString(resp)){
+		std::string decresp;
+		ret = decrypt_body(resp, decresp);
+		
+		if(ret < 0){
+			LOG_OUT << "cid:" << m_cid
+				<< " handle_service_request decrypt_body fail\n";
+			return ret;
+		}
+
+
+		if(!svreq.ParseFromString(decresp)){
 			LOG_OUT << "cid:" << m_cid
 				<< " handle_service_request ParseFromString fail\n";
 			return -1;
@@ -246,8 +291,10 @@ public:
 		svresp.set_status(ret);
 		std::string msg;
 		std::string body;
+		std::string encbody;
 		svresp.SerializeToString(&body);
-		ret = send_req(201, body);
+		encrypt_body(body, encbody);
+		ret = send_req(201, encbody);
 		if(ret == 0)
 			++recv_req_success_count;
 		return ret;	
@@ -361,6 +408,18 @@ public:
 		return 	getlocalport();
 	}
 
+	static int initPublicKeyPem(const std::string& pem){
+		return s_rsa.initPublicKey(pem);
+	}
+
+	static int decryptByPublicKey(const std::string& in, std::string& out){
+		return s_rsa.decryptByPublicKey(in, out);
+	}
+
+	static int encryptByPublicKey(const std::string& in, std::string& out){
+		return s_rsa.encryptByPublicKey(in, out);
+	}
+
 private:
 	friend	class CliSet;
 	std::string	m_server_addr;
@@ -381,6 +440,7 @@ private:
 	static	int32	recv_req_success_count;
 	static	int64	total_spend_time;
 	static	int64	last_total_spend_time;
+	static RSAEnt s_rsa;
 }; 
 
 
@@ -393,6 +453,7 @@ int32	Client::total_recv_req = 0;
 int32	Client::recv_req_success_count = 0;
 int64	Client::total_spend_time = 0;
 int64	Client::last_total_spend_time = 0;
+RSAEnt	Client::s_rsa;
 
 class CliSet{
 public:
@@ -400,7 +461,7 @@ public:
 	}
 
 	int32 init(const std::string& serverip, int32 serverport, 
-		int32 max_con, const std::string& cid, 
+		int32 max_con, const std::string& publickeypem, const std::string& cid, 
 		const std::string& token, const std::string& version){
 		m_server_addr = serverip;
 		m_server_port = serverport;
@@ -409,7 +470,9 @@ public:
 		m_cid = cid;
 		m_token = token;
 		m_version = version;
-		return 0;
+		int ret = Client::initPublicKeyPem(publickeypem);
+
+		return ret;
 	}
 
 	int32 connect_server(){
@@ -525,7 +588,7 @@ private:
 
 int main(int argc, const char** argv){
 	if(argc < 7){
-		LOG_OUT_NO_SN << "test <addr> <port> <count> "
+		LOG_OUT_NO_SN << "test <addr> <port> <count> <publickeypem>"
 			"<client_id> <token> <version> \n"
 			<< std::endl;
 		return	0;
@@ -536,15 +599,23 @@ int main(int argc, const char** argv){
 	std::string addr = argv[1];
 	int port = atoi(argv[2]);
 	int cnt = atoi(argv[3]);
-	std::string cid = argv[4];
-	std::string token = argv[5];
-	std::string ver = argv[6];
+	std::string publickeypem = argv[4];
+	std::string cid = argv[5];
+	std::string token = argv[6];
+	std::string ver = argv[7];
 		
-	std::cout << "addr:" << addr << ", port:" << port << ", client_id:" 
+	std::cout << "addr:" << addr << ", port:" << port << ", pem:" 
+		<< publickeypem << ", client_id:" 
 		<< cid << ", token:" << token << ", ver:" << ver
 		<< std::endl;
 
-	clst.init(addr, port, cnt, cid, token, ver);
+	ret = clst.init(addr, port, cnt, publickeypem, cid, token, ver);
+
+	if(ret < 0){
+		std::cout << "init fail" << std::endl;
+		return ret;
+	}
+
 	clst.run(argc - 7, argv + 7);
 	return	0;
 }

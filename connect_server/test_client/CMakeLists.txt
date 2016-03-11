@@ -13,7 +13,7 @@ include_directories(/usr/local/include ../../efnfw ../../common/include)
 LINK_DIRECTORIES(${PROJECT_SOURCE_DIR}/../../common/lib
 ${PROJECT_SOURCE_DIR}/../../efnfw/lib /usr/local/lib)
 
-link_libraries(common efnfw hiredis zookeeper_mt protobuf jsoncpp pthread) 
+link_libraries(common efnfw hiredis zookeeper_mt protobuf jsoncpp ssl pthread) 
 
 
 file(GLOB_RECURSE SRC_LISTS src/*.cpp)

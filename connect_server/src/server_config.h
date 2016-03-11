@@ -3,6 +3,8 @@
 
 #include <vector>
 #include <json/json.h> 
+#include "rsa_service.h"
+#include "base/ef_auto_ptr.h"
 
 namespace gim{
 
@@ -17,6 +19,48 @@ public:
 	int MaxPackCntPerMin;
 	int StartThreadIdx;
 	int ThreadCnt;
+	ef::RefCntPtr<RSAService> RSAs;
+
+	CliConfig(){
+		Enc = 0;
+		AliveMs = 0;
+		MinType = 0;
+		MaxType = 0;
+		ListenPort = 0;
+		MaxReqQueSize = 0;
+		MaxPackCntPerMin = 0;
+		StartThreadIdx = 0;
+		ThreadCnt = 0;
+	}
+
+	CliConfig(const CliConfig& other){
+		Enc = other.Enc;
+		AliveMs = other.AliveMs;
+		MinType = other.MinType;
+		MaxType = other.MaxType;
+		ListenPort = other.ListenPort;
+		MaxReqQueSize = other.MaxReqQueSize;
+		MaxPackCntPerMin = other.MaxPackCntPerMin;
+		StartThreadIdx = other.StartThreadIdx;
+		ThreadCnt = other.ThreadCnt;
+		RSAs = other.RSAs;
+	}
+
+	CliConfig& operator = (const CliConfig& other){
+		Enc = other.Enc;
+		AliveMs = other.AliveMs;
+		MinType = other.MinType;
+		MaxType = other.MaxType;
+		ListenPort = other.ListenPort;
+		MaxReqQueSize = other.MaxReqQueSize;
+		MaxPackCntPerMin = other.MaxPackCntPerMin;
+		StartThreadIdx = other.StartThreadIdx;
+		ThreadCnt = other.ThreadCnt;
+		RSAs = other.RSAs;
+		
+		return *this;
+	}
+
 };
 
 

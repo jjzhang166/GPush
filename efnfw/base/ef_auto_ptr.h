@@ -70,7 +70,7 @@ public:
 		m_imp = ptr.m_imp;
 	}
 
-	RefCntPtr& operator = (RefCntPtr& ptr){
+	RefCntPtr& operator = (const RefCntPtr& ptr){
 		m_imp->decRef();
 		ptr.m_imp->incRef();
 		m_imp = ptr.m_imp;
@@ -112,7 +112,7 @@ public:
 		m_imp = ptr.m_imp;
 	}
 
-	ArrayRefCntPtr& operator = (ArrayRefCntPtr& ptr){
+	ArrayRefCntPtr& operator = (const ArrayRefCntPtr& ptr){
 		m_imp->decRef();
 		ptr.m_imp->incRef();
 		m_imp = ptr.m_imp;

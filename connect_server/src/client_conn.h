@@ -90,6 +90,9 @@ private:
 	int delSession();
 	int updateSession();
 
+
+	int decryptBody(const std::string& in, std::string& out);
+	int encryptBody(const std::string& in, std::string& out);
 	int checkType(int type);
 	int checkReqQue(int reqcnt, int respcnt);
 
@@ -99,6 +102,7 @@ private:
 	time_t m_login_time;
 	int m_busy;
 	Sess m_sess;
+	std::string m_key;
 
 	ef::int64 m_req_cnt;
 	ef::int64 m_resp_cnt;

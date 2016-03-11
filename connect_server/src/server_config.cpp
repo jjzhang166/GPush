@@ -1,6 +1,7 @@
 #include "server_config.h"
 #include "base/ef_log.h"
 #include <fstream>
+#include <iostream>
 
 namespace gim{
 
@@ -138,6 +139,43 @@ int ServerConfig::loadPortsConfigs(const Json::Value& v){
 		c.MaxPackCntPerMin = MaxPackCntPerMinv.asInt();
 		c.StartThreadIdx = StartThreadIdxv.asInt();
 		c.ThreadCnt = ThreadCntv.asInt();
+
+		if(c.StartThreadIdx >= ThreadCount || c.StartThreadIdx < 0){
+			cout << "c.StartThreadIdx >= ThreadCount || c.StartThreadIdx < 0!" << endl;			
+			return -2;
+		}
+
+		if(c.ThreadCnt + c.StartThreadIdx > ThreadCount || c.ThreadCnt < 1){
+
+			cout << "c.ThreadCnt + c.StartThreadIdx > ThreadCount || c.ThreadCnt < 1!" << endl;			
+			return -3;
+		}
+
+		if(c.Enc){
+			const Json::Value& pubpemV = cf["PublicPem"];
+			
+			if(!pubpemV.isString()){
+				return -4;
+			}	 
+
+			const Json::Value& pripemV = cf["PrivatePem"];
+			
+			if(!pripemV.isString()){
+				return -5;
+			}	 
+
+			RSAService* r = new RSAService();
+			
+			r->init(pubpemV.asString(), pripemV.asString());
+
+			c.RSAs.reset(r);
+
+
+			if(!r->getEntry()){
+				cout << "init RSAService fail!" << endl;
+				return -6;
+			}
+		}
 	
 		CliConfigs.push_back(c);	
 			
