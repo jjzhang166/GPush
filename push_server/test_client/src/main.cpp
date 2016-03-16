@@ -48,6 +48,7 @@ void *testfun(void *arg)
 	sendbuf.append((char *)&rh, sizeof(rh));
 	sendbuf.append(svreqbuf);
 	tcpSend(sockfd, sendbuf.data(), sendbuf.size(), 1000, NULL);
+	cout << "send request!" << std::endl;
 	char buf1[1024] = {0};
 	ret = recv(sockfd, buf1, 1024, 0);
 	h2 = *(head *)buf1;

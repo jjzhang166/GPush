@@ -55,6 +55,11 @@ namespace ef{
 		int32 readBuf(char* out, int32 outlen){
 			return m_buf.read((uint8*)out, outlen);
 		}
+
+		int32 searchInBuf(const char* s, int32 slen){
+			return m_buf.find((uint8*)s, slen);
+		}
+
 		//recv buf len
 		int32 bufLen() const{
 			return m_buf.size();

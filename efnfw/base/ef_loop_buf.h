@@ -54,6 +54,7 @@ class	LoopBuf{
 		}
 	
 		int32	find(uint8 c) const;
+		int32	find(const uint8* s, int32 slen) const;
 		int32	clear();
 
 	private:

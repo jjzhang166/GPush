@@ -5,6 +5,7 @@
 #include "logic_common.h"
 #include "net/ef_connection.h"
 #include "net/ef_acceptor.h"
+#include "msg_head.h"
 #include <json/json.h>
 
 namespace gim{
@@ -16,7 +17,7 @@ class ListenCon:public Connection
 {
 public:
 
-	ListenCon():m_serv(NULL){
+	ListenCon():m_serv(NULL), m_type(UNKNOW_TYPE), m_bodylen(-1){
 	}
 
 	virtual	~ListenCon();
@@ -41,9 +42,33 @@ protected:
 
 private:
 
+	struct httpHead{
+		std::string METHOD;
+		std::string VERSION;
+		std::string head;
+
+	};
+
+
+	enum{
+		UNKNOW_TYPE = 0,
+		BIN_TYPE = 1,
+		HTTP_TYPE = 2,
+	};
+
+	int m_type;//0:unknow, 1:bin, 2:http
+	httpHead m_httph;
+	head m_binh;
+
+	int m_bodylen;
+
+
 	int handlePushReqeust(const std::string& req);
 	int sendJsonResponse(const Json::Value& v);
 	int sendToServer(int svid, const PushRequest& req);
+	int parseHead();
+	int parseBinHead();
+	int parseHttpHead();
 
 	PushServer* m_serv;
 };

@@ -160,6 +160,28 @@ namespace	ef{
 
 	}
 
+	int32	LoopBuf::find(const uint8* s, int32 slen) const{
+		int32 ret = 0;
+		frame*  f = m_head;
+		frame*  n = NULL;
+		while(f){
+			n = f->m_next;
+			for(int32 i = 0; i < f->m_size - slen; ++i){
+				if(memcmp(f->m_buf + f->m_start + i, s, slen) == 0){
+					ret += i;
+					return ret;
+				}
+			}	
+			ret += f->m_size;
+			f = n;
+		}	
+		if(!f){
+			return -1;
+		}
+		return ret;
+
+	}
+
 
 	LoopBuf::LoopBuf(){
 		frame* f = allocFrame(1024); 

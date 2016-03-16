@@ -41,39 +41,58 @@ int ListenCon::getSvID() const{
 int ListenCon::handlePacket(const string& req){
 
 	std::cout << "ListenCon::handlePacket" << std::endl;
-	int ret = 0;
-	head h;
-	h = *(head*)req.data();
-	h.cmd = htonl(h.cmd);
-	h.len = htonl(h.len);
-	h.magic = htonl(h.magic);
 
-	switch(h.cmd){
-	case JSON_PUSH_REQ:
-		ret = handlePushReqeust(req.substr(sizeof(h)));
-		break;
-	default:
-		break;	
+	int ret = 0;
+
+	if(m_type == BIN_TYPE){
+		head h;
+		h = *(head*)req.data();
+		h.cmd = htonl(h.cmd);
+		h.len = htonl(h.len);
+		h.magic = htonl(h.magic);
+
+		switch(h.cmd){
+		case JSON_PUSH_REQ:
+			ret = handlePushReqeust(req.substr(sizeof(h)));
+			break;
+		default:
+			break;	
+		}
+	}else{
+		ret = handlePushReqeust(req);
 	}
 
 	return ret;
 }
 
 int ListenCon::sendJsonResponse(const Json::Value& v){
-	head resph;
-	resph.cmd = JSON_PUSH_RESP;
-	resph.magic = MAGIC_NUMBER;
 
 	string msg;
-	constructPacket(resph, v.toStyledString(), msg);
+	string body = v.toStyledString();
+	
+	if(m_type == BIN_TYPE){
+		head resph;
+		resph.cmd = JSON_PUSH_RESP;
+		resph.magic = MAGIC_NUMBER;
 
+		constructPacket(resph, body, msg);
+	}else{
+
+		string heads = m_httph.VERSION + " 200 OK\r\n"
+			"Content-Length:" + itostr(body.size()) +"\r\n"
+			"Content-Type:text/plain\r\n\r\n";
+		msg = heads + body;	
+
+	}
 
 	return sendMessage(msg);
+		
 }
 
 int ListenCon::handlePushReqeust(const string& req){
 
 	Json::Value v;
+
 	Json::Reader r;
 	Json::Value respv;
 
@@ -163,15 +182,9 @@ int ListenCon::sendToServer(int svid, const PushRequest& preq){
 	return s->sendPushRequest(preq);
 }
 
-int ListenCon::checkPackLen(){
+int ListenCon::parseBinHead(){
 	int ret = 0;
-
 	head h;
-
-	if(bufLen() < (int)sizeof(head)){
-		return 0;
-	}
-
 	peekBuf((char*)&h, sizeof(head));
 	h.magic = htonl(h.magic);
 	h.len = htonl(h.len);
@@ -189,6 +202,108 @@ int ListenCon::checkPackLen(){
 			<< getId() << "> <buflen:" << bufLen() 
 			<< "> <status:packet_not_full>";
 	}
+
+	return 0;
+
+}
+
+int ListenCon::parseHttpHead(){
+	size_t pos = m_httph.head.find("\r\n\r\n");
+
+	if(pos == string::npos){
+
+		int p = searchInBuf("\r\n\r\n", 4);
+
+		if(p < 0){
+			return 0;
+		}
+	
+		//append head		
+		string s;
+		s.resize(p + 4);
+		readBuf((char*)s.data(), s.size());	
+		m_httph.head += s;	
+	} 
+
+	if(!m_httph.VERSION.size()){
+		size_t pos = m_httph.head.find("\r\n");
+
+		string mline = m_httph.head.substr(0, pos);
+
+		pos = mline.find("HTTP");
+		if(pos == string::npos){
+			return 0;
+		}	
+
+		m_httph.VERSION = mline.substr(pos);	
+
+	}
+
+	if(m_bodylen < 0){
+		size_t pos = m_httph.head.find("Content-Length:");
+		if(pos == string::npos){
+			return 0;
+		}
+
+		//find after "Content-Length:"
+		pos = m_httph.head.find_first_not_of(" \t", pos + 15);	
+		
+		if(pos == string::npos){
+			return 0;
+		}
+
+		m_bodylen = atoi(m_httph.head.data() + pos);
+	}
+
+	if(m_bodylen <= bufLen()){
+		return m_bodylen;	
+	}
+
+	//std::cout << "httphead:" << m_httph.head 
+	//	<< ", VERSION:" << m_httph.VERSION 
+	//	<< ", bodylen:" << m_bodylen << std::endl;
+
+	return 0;
+		
+}
+
+int ListenCon::parseHead(){
+	int ret = 0;
+
+	if(m_type == UNKNOW_TYPE){
+		if(bufLen() < (int)sizeof(head)){
+			return 0;
+		}
+		string hs;
+		hs.resize(sizeof(head));
+		peekBuf((char*)hs.data(), hs.size());
+		if(hs.find("GET") == 0 || hs.find("POST") == 0){
+			m_type = HTTP_TYPE;
+		}else{
+			m_type= BIN_TYPE;
+			m_binh = *(head*)hs.data();
+			m_binh.magic = htonl(m_binh.magic);
+			m_binh.len = htonl(m_binh.len);
+			m_binh.cmd = htonl(m_binh.cmd);
+			m_bodylen = m_binh.len - sizeof(m_binh);
+			return m_binh.len;
+		}
+	}
+
+	if(m_type == BIN_TYPE){
+		ret = parseBinHead();
+	}else if(m_type == HTTP_TYPE){
+		ret = parseHttpHead();
+	}
+
+
+	return ret;
+
+}
+
+int ListenCon::checkPackLen(){
+
+	int ret = parseHead();
 
 	return ret;
 }
