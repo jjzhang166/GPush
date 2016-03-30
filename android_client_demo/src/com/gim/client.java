@@ -1,11 +1,11 @@
 package com.gim;
 
 public class client {
-	public native int init(listener lstr);
+	public native int init(listener lstr, String pubkey);
 
 	public native int stop();
 
-	public native int login(String srvip, int srvport, String cliver, String cid);
+	public native int login(String srvip, int srvport, String cliver, String cid, String token);
 
 	public native int logout(String cid);
 

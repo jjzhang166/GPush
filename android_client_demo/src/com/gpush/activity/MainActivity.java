@@ -8,32 +8,42 @@ import org.json.JSONObject;
 
 import com.gim.GMsg;
 import com.gim.msg.GClientBox;
-import com.gim.msg.Observer;
 import com.gpush.config.Config;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.Gravity;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
-public class MainActivity extends Activity implements Observer {
+public class MainActivity extends Activity {
 	private ListView listView;
 	private ArrayAdapter<String> adpter;
 	private List<String> list;
+	
+	private Handler mHandler;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		GClientBox.instance().getPublisher().addOb(this);
+		mHandler = new Handler(){
+				public void handleMessage(Message msg) {
+					onNotify(msg);
+					super.handleMessage(msg); 
+				}
+		};
+		GClientBox.instance().getRouter().setHandler(mHandler);
+		
 		GClientBox
 				.instance()
 				.getClient()
 				.login(Config.SRVIP, Config.SRVPORT, Config.CLIVERSION,
-						Config.UID);
+						Config.UID, "ss");
 		listView = new ListView(this);
 		list = new LinkedList<String>();
 		list.add("GPush Demo");
@@ -41,20 +51,20 @@ public class MainActivity extends Activity implements Observer {
 				android.R.layout.simple_expandable_list_item_1, list);
 		listView.setAdapter(adpter);
 		setContentView(listView);
+		
 	}
 
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
 		GClientBox.instance().getClient().logout(Config.UID);
-		GClientBox.instance().getPublisher().removeOb(this);
 	}
 
-	public int onNotify(GMsg notify) {
-		if (notify.type == GMsg.GIM_EVTYPE_PUSH) {
+	public int onNotify(Message msg) {
+		if (msg.what == GMsg.GIM_EVTYPE_PUSH) {
 
 			try {
-				JSONObject j = (JSONObject) notify.data;
+				JSONObject j = (JSONObject) msg.obj;
 
 				String m = "msg [sn:" + j.getString("sn") + "] [payload:"
 						+ j.getString("payload") + "]";
@@ -67,17 +77,17 @@ public class MainActivity extends Activity implements Observer {
 			} catch (JSONException e) {
 				Log.e("msg ex:", e.toString());
 			}
-		} else if (notify.type == GMsg.GIM_EVTYPE_LOGIN_OK) {
+		} else if (msg.what == GMsg.GIM_EVTYPE_LOGIN_OK) {
 			Toast toast = Toast.makeText(getApplicationContext(),
 					"login success", Toast.LENGTH_LONG);
 			toast.setGravity(Gravity.CENTER, 0, 0);
 			toast.show();
-		} else if (notify.type == GMsg.GIM_EVTYPE_LOGIN_FAIL) {
+		} else if (msg.what == GMsg.GIM_EVTYPE_LOGIN_FAIL) {
 			Toast toast = Toast.makeText(getApplicationContext(), "login fail",
 					Toast.LENGTH_LONG);
 			toast.setGravity(Gravity.CENTER, 0, 0);
 			toast.show();
-		} else if (notify.type == GMsg.GIM_EVTYPE_LOGIN_FAIL) {
+		} else if (msg.what == GMsg.GIM_EVTYPE_LOGIN_FAIL) {
 			Toast toast = Toast.makeText(getApplicationContext(), "logout",
 					Toast.LENGTH_LONG);
 			toast.setGravity(Gravity.CENTER, 0, 0);

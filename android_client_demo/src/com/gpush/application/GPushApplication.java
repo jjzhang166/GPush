@@ -1,7 +1,11 @@
 package com.gpush.application;
 import com.gim.msg.*;
+import com.gpush.R;
+import com.gpush.config.Config;
 
 import android.app.Application;
+import android.net.Uri;
+import android.util.Log;
 
 public class GPushApplication extends Application {
 	@Override
