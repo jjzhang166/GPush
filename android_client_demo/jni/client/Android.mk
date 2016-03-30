@@ -1,7 +1,6 @@
 
 LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
-$(warning $(LOCAL_PATH))
 
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/../json
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/../efnfw
