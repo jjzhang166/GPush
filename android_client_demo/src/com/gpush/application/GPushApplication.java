@@ -1,6 +1,5 @@
 package com.gpush.application;
 import com.gpush.msg.*;
-import com.gpush.R;
 import com.gpush.config.Config;
 
 import android.app.Application;

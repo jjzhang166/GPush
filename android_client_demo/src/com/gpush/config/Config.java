@@ -2,7 +2,6 @@ package com.gpush.config;
 
 public class Config {
 	private Config() {
-
 	}
 
 	public static final String SRVIP = "115.28.10.54";// "115.159.89.35";
