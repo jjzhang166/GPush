@@ -7,7 +7,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.gim.GMsg;
-import com.gim.msg.GClientBox;
+import com.gpush.msg.GClientBox;
 import com.gpush.config.Config;
 
 import android.app.Activity;

@@ -1,5 +1,5 @@
 package com.gpush.application;
-import com.gim.msg.*;
+import com.gpush.msg.*;
 import com.gpush.R;
 import com.gpush.config.Config;
 
