@@ -8,17 +8,19 @@
 #include "server_conn.h"
 #include "server_manager.h"
 #include "base/ef_base64.h"
+#include "base/ef_utility.h"
 #include <iostream>
 
 namespace gim{
 
 using namespace std;
+using namespace Json;
 
 
 int genSessID(int svid, int conid,
-	const std::string& n, std::string& dn){
+	const string& n, std::string& dn){
 
-	std::string buf;
+	string buf;
 	buf.resize(8);
 
 	char* p = (char*)buf.data();
@@ -40,7 +42,7 @@ int ListenCon::getSvID() const{
 
 int ListenCon::handlePacket(const string& req){
 
-	std::cout << "ListenCon::handlePacket" << std::endl;
+	cout << "ListenCon::handlePacket" << std::endl;
 
 	int ret = 0;
 
@@ -53,19 +55,19 @@ int ListenCon::handlePacket(const string& req){
 
 		switch(h.cmd){
 		case JSON_PUSH_REQ:
-			ret = handlePushReqeust(req.substr(sizeof(h)));
+			ret = handleCommand(req.substr(sizeof(h)));
 			break;
 		default:
 			break;	
 		}
 	}else{
-		ret = handlePushReqeust(req);
+		ret = handleCommand(req);
 	}
 
 	return ret;
 }
 
-int ListenCon::sendJsonResponse(const Json::Value& v){
+int ListenCon::sendJsonResponse(const Value& v){
 
 	string msg;
 	string body = v.toStyledString();
@@ -89,12 +91,14 @@ int ListenCon::sendJsonResponse(const Json::Value& v){
 		
 }
 
-int ListenCon::handlePushReqeust(const string& req){
+int ListenCon::handleCommand(const string& req){
 
-	Json::Value v;
+	int ret = 0;
 
-	Json::Reader r;
-	Json::Value respv;
+	Value v;
+
+	Reader r;
+	Value respv;
 
 	respv["status"] = 0;
 
@@ -102,11 +106,33 @@ int ListenCon::handlePushReqeust(const string& req){
 		respv["status"] = -1;
 		respv["message"] = "parse req fail";
 		sendJsonResponse(respv);
-		logicInfo << "<action:handlePushReqeust> <req:"<< req 
+		logicInfo << "<action:handleCommand> <req:"<< req 
 			<< "> <resp:" << respv.toStyledString() << ">";
 		return -1;
 	}
 
+	const string& cmd = v["cmd"].asString();
+
+	if(cmd == "push_request"){
+		ret = handlePushReqeust(v, respv);
+	}else if(cmd == "user_status_request"){
+		ret = handleUserStatusRequest(v, respv);
+	}else{
+		respv["status"] = -2;
+		respv["message"] = "unknow command";
+	}
+
+
+	sendJsonResponse(respv);
+	logicInfo << "<action:sendJsonResponse> <req:" << req << "> <resp:" 
+		<< respv.toStyledString() << ">";
+	return 0;
+}
+
+int ListenCon::handlePushReqeust(const Value& v, Value& respv){
+
+
+	respv["cmd"] = "push_response";
 	respv["sn"] = v["sn"];
 
 	PushRequest preq;
@@ -118,31 +144,22 @@ int ListenCon::handlePushReqeust(const string& req){
 	if (!s) {
 		respv["status"] = -2;
 		respv["message"] = "get sess cache fail";
-		sendJsonResponse(respv);
-		logicInfo << "<action:sendJsonResponse> <req:" << req 
-			<< "> <resp:" << respv.toStyledString() << ">";
 		return -2;
 	}
 
 	if(!v["to_id"].isString()){
 		respv["status"] = -4;
 		respv["message"] = "to_id is empty";
-		sendJsonResponse(respv);
-		logicInfo << "<action:sendJsonResponse> <req:" << req 
-			<< "> <resp:" << respv.toStyledString() << ">";
 		return -4;
 	}
 
-	std::string id = v["to_id"].asString();
+	string id = v["to_id"].asString();
 
-	std::vector<Sess> sv;
+	vector<Sess> sv;
 	s->getSession(id, sv);
 	if (sv.empty()) {
 		respv["status"] = -3;
 		respv["message"] = "user offline";
-		sendJsonResponse(respv);
-		logicInfo << "<action:sendJsonResponse> <req:" << req 
-			<< "> <resp:" << respv.toStyledString() << ">";
 		return -3;
 	}
 
@@ -164,11 +181,51 @@ int ListenCon::handlePushReqeust(const string& req){
 	}
 
 	respv["count"] = count;
-	sendJsonResponse(respv);
-	logicInfo << "<action:sendJsonResponse> <req:" << req << "> <resp:" 
-		<< respv.toStyledString() << ">";
 	return count;
 }
+
+int ListenCon::handleUserStatusRequest(const Value& v, Value& respv){
+
+
+	respv["cmd"] = "user_status_response";
+	respv["sn"] = v["sn"];
+
+	SessCache* s = SessCacheService::instance()->getSessCache();
+	if (!s) {
+		respv["status"] = -2;
+		respv["message"] = "get sess cache fail";
+		return -2;
+	}
+
+	if(!v["user_id"].isString()){
+		respv["status"] = -4;
+		respv["message"] = "user_id is empty";
+		return -4;
+	}
+
+	string id = v["user_id"].asString();
+
+	vector<Sess> sv;
+	s->getSession(id, sv);
+
+	Value ss;
+
+	for (unsigned int n = 0; n<sv.size(); n++){
+		Value s;
+		s["sessid"] = sv[n].sessid();
+		s["lastacttime"] = timestamp_to_date((time_t)sv[n].lasttime());
+		s["consvid"] = sv[n].consvid();
+		s["version"] = sv[n].version();
+		
+		ss.append(s);
+	}
+
+	respv["count"] = (int)sv.size();
+	respv["sesslist"] = ss;
+
+	return 0;
+}
+
 
 int ListenCon::sendToServer(int svid, const PushRequest& preq){
 	Svlist* m = (Svlist*)getEventLoop()->getObj();
@@ -259,9 +316,9 @@ int ListenCon::parseHttpHead(){
 		return m_bodylen;	
 	}
 
-	//std::cout << "httphead:" << m_httph.head 
+	//cout << "httphead:" << m_httph.head 
 	//	<< ", VERSION:" << m_httph.VERSION 
-	//	<< ", bodylen:" << m_bodylen << std::endl;
+	//	<< ", bodylen:" << m_bodylen << endl;
 
 	return 0;
 		
@@ -314,7 +371,7 @@ int ListenCon::onCreate(ef::EventLoop* l){
 }
 
 Connection* LConFactory::createConnection(EventLoop* l,
-	int32 fd, const std::string& addr,int32 port){
+	int32 fd, const string& addr,int32 port){
 	ListenCon* c = new ListenCon();
 	return c;
 }

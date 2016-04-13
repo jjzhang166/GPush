@@ -24,6 +24,8 @@ namespace ef{
 	void trim(std::string& str);
 
 	int32 sleep_ms (int32 msec);
+
+	std::string timestamp_to_date(time_t t);
 };
 
 #endif/*EF_UTILITY_H*/

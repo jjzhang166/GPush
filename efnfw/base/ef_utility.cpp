@@ -46,19 +46,6 @@ using namespace std;
 
 	int64 tv_diff_ms(struct timeval t1, struct timeval t2){
 		return (t1.tv_sec - t2.tv_sec) * 1000 + (t1.tv_usec - t2.tv_usec) / 1000;
-	//	if(t1.tv_sec < t2.tv_sec){
-	//		return	-1;
-	//	}else	if(t1.tv_sec > t2.tv_sec){
-	//		return	1;
-	//	}else{
-	//		if(t1.tv_usec < t2.tv_usec){
-	//			return	-1;
-	//		}else	if(t1.tv_usec > t2.tv_usec){
-	//			return	1;
-	//		}else{
-	//			return	0;
-	//		}
-	//	}
 	}
 
 	struct timeval tv_diff(struct timeval t1, struct timeval t2){
@@ -131,5 +118,21 @@ using namespace std;
 
 		return ret;
 	}
+
+
+	string timestamp_to_date(time_t t)
+	{
+		string date;
+		struct tm *p;
+		char s[100] = {0};
+
+		p = localtime(&t);
+		strftime(s, sizeof(s), "%Y-%m-%d %H:%M:%S", p);
+
+		date = s;
+		
+		return date;
+	}
+
 };
 

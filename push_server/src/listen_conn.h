@@ -17,7 +17,7 @@ class ListenCon:public Connection
 {
 public:
 
-	ListenCon():m_serv(NULL), m_type(UNKNOW_TYPE), m_bodylen(-1){
+	ListenCon():m_type(UNKNOW_TYPE), m_bodylen(-1), m_serv(NULL){
 	}
 
 	virtual	~ListenCon();
@@ -62,8 +62,10 @@ private:
 
 	int m_bodylen;
 
-
-	int handlePushReqeust(const std::string& req);
+	int handleCommand(const std::string& req);
+	int handlePushReqeust(const Json::Value& v, Json::Value& resp);
+	int handleUserStatusRequest(const Json::Value& v, Json::Value& resp);
+	int handleReqeust(const std::string& req);
 	int sendJsonResponse(const Json::Value& v);
 	int sendToServer(int svid, const PushRequest& req);
 	int parseHead();
