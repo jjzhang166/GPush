@@ -7,7 +7,7 @@
 //
 
 #import "ViewController.h"
-#import "ClientWrapper.h"
+#import <GpushSDK/ClientWrapper.h>
 @interface ViewController ()
 
 @end

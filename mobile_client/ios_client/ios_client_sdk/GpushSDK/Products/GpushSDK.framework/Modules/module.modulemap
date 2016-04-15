@@ -1,0 +1,6 @@
+framework module GpushSDK {
+  umbrella header "GpushSDK.h"
+
+  export *
+  module * { export * }
+}

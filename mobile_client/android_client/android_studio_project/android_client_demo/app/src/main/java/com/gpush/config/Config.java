@@ -7,6 +7,6 @@ public class Config {
 	public static final String SRVIP = "192.168.200.153";// "115.159.89.35";
 	public static final int SRVPORT = 13000;
 	public static final String CLIVERSION = "1.0";
-	public static final String UID = "test0001";
+	public static final String UID = "adnroid_test";
 	public static final String PubKeyFile = "/assets/rsa_public_key.pem";
 };
