@@ -8,7 +8,7 @@
 
 
 using namespace ef;
-#define KEEPALIVE_TIMEOUT 300
+#define KEEPALIVE_TIMEOUT 60
 
 #define LOGIN_OP_SN "Login"
 namespace gim

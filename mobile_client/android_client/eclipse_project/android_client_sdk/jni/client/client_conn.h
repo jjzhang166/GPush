@@ -16,23 +16,20 @@ namespace gim
 {
 	struct TimerKey
 	{
-		TimerKey(const std::string& _id, const timeval& tv)
-			:id(_id), deadline(tv)
-		{
-		}
 		TimerKey(const std::string& _id, int32 second)
 			:id(_id)
 		{
-			gettimeofday(&deadline, NULL);
-			deadline.tv_sec += second;
+			timeval now;
+			gettimeofday(&now, NULL);
+			deadline =  now.tv_sec + second;
 		}
 		~TimerKey(){};
 		bool operator < (const TimerKey& right) const
 		{
-			return tv_cmp(this->deadline, right.deadline) < 0;
+			return this->deadline, right.deadline;
 		}
 		std::string id;
-		timeval deadline;
+		int32 deadline;
 	};
 
 	class EventLoop;
@@ -62,7 +59,7 @@ namespace gim
 		int32 publish(const std::string& json);
 		int32 connectAndLogin();
 
-		int32 processTimers(const struct timeval& tnow, struct timeval& tv);
+		int32 processTimers(unsigned int& timeout);
 		int32 addTimer(const std::string& id, Op* sp);
 		int32 popTimer(const std::string& id, SmartOp& handle);
 		int32 handleRead();
