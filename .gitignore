@@ -13,6 +13,8 @@ bin/
 gen/
 out/
 build/
+mobile_client/android_client/android_studio_project/android_client_sdk/app/src/main/libs/*
+mobile_client/android_client/android_studio_project/android_client_sdk/app/src/main/obj/*
 
 # Local configuration file (sdk path, etc)
 local.properties
