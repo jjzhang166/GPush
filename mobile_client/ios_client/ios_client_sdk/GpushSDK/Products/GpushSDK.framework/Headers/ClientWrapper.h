@@ -12,7 +12,7 @@ typedef void (^handerMessage)(NSString * msg);
 @interface ClientWrapper : NSObject
 + (instancetype)shared;
 
-@property (weak,nonatomic) handerMessage hmsg;
+@property (strong,nonatomic) handerMessage hmsg;
 
 -(void)initClientWithHander:(handerMessage)h;
 -(int)login:(NSString *)anSrvip srvport:(int)anSrvport cid:(NSString *)anCid  version:(NSString *)anVersion  token:(NSString *)anToken;

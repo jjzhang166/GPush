@@ -12,7 +12,7 @@ namespace gim
 		Client();
 		~Client();
 
-        int init();
+		int init();
 		void setKeepaliveTimeout(int second);
 		void setPublicKeyFile(const std::string& keyfile);
 		int login(const std::string& srvip, int srvport, const std::string& cid, const std::string& version, const std::string& token);

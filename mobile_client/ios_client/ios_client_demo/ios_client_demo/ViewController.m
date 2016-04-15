@@ -19,10 +19,19 @@
     // Do any additional setup after loading the view, typically from a nib.
     ClientWrapper *c=[ClientWrapper shared];
   
+    
+    __weak typeof(self) weakSelf = self;
     [c initClientWithHander:^(NSString *msg) {
         NSLog(@"%@",msg);
+        
+        dispatch_sync(dispatch_get_main_queue(), ^{
+            //Update UI in UI thread here
+            weakSelf.lbStatus.text=msg;
+            
+        });
+        
     }];
-    int i= [c login:@"192.168.200.153" srvport:13000 cid:@"test0001" version:@"1.0" token:@"aaa"];
+    int i= [c login:@"192.168.200.153" srvport:13000 cid:@"testios" version:@"1.0" token:@"aaa"];
     NSLog(@"%d",i);
 }
 

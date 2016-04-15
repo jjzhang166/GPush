@@ -69,18 +69,13 @@ namespace gim
 	int32 EventLoop::run()
 	{
 		SDK_LOG(LOG_LEVEL_TRACE, "eventloop run");
-		struct timeval c_tvmax ;
-		c_tvmax.tv_sec = (~0UL);
-		c_tvmax.tv_usec = (~0UL);
-		struct timeval tv;
-		struct timeval* ptv;
 		fd_set fds;
 
 		while (m_run)
 		{
-			tv = c_tvmax;
-			processTimers(tv);
-			ptv = (tv_cmp(c_tvmax, tv) == 0) ? NULL : &tv;
+			unsigned int timeout = 90;
+			processTimers(timeout);
+
 			FD_ZERO(&fds);
 			SOCKET maxfd = m_ctlfdr;
 			FD_SET(m_ctlfdr, &fds);
@@ -95,8 +90,12 @@ namespace gim
 			}
 			maxfd++;
 
-			//SDK_LOG(LOG_LEVEL_TRACE, "select time out = %s", itostr(tv.tv_sec).c_str());
-			int32 ret = select(maxfd, &fds, NULL, NULL, ptv);
+			timeval tv;
+			tv.tv_sec = timeout;
+			tv.tv_usec = 0;
+
+			SDK_LOG(LOG_LEVEL_TRACE, "select time out = %s", itostr(tv.tv_sec).c_str());
+			int32 ret = select(maxfd, &fds, NULL, NULL, &tv);
 			if (ret < 0)
 			{
 				if (ret != /*SOCK_EINTR*/4)
@@ -188,12 +187,12 @@ namespace gim
 
 		return 0;
 	}
-	int32 EventLoop::processTimers(struct timeval& tv)
+	int32 EventLoop::processTimers(unsigned int& timeout)
 	{
-		timeval tnow;
-		gettimeofday(&tnow, NULL);
+		SDK_LOG(LOG_LEVEL_TRACE, "EventLoop::processTimers, count=%d", m_conns.size());
 		for (CliConnMap::iterator it = m_conns.begin(); it != m_conns.end();)
 		{
+			SDK_LOG(LOG_LEVEL_TRACE, "EventLoop::processTimers NULL");
 			CliConn* pcon = it->second;
 			if (!pcon)
 			{
@@ -203,12 +202,13 @@ namespace gim
 			{
 				if (pcon->getfd() == INVALID_SOCKET)
 				{
+					SDK_LOG(LOG_LEVEL_TRACE, "EventLoop::processTimers INVALID_SOCKET");
 					m_conns.erase(it++);
 					delete pcon;
 				}
 				else
 				{
-					pcon->processTimers(tnow, tv);
+					pcon->processTimers(timeout);
 					it++;
 				}
 			}

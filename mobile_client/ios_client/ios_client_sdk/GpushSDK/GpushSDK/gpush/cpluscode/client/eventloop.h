@@ -34,7 +34,7 @@ namespace gim
 		int32 onStopAndWait();
 		static int32 workThreadProcess(EventLoop* el);
 		int32 processOps();
-		int32 processTimers(struct timeval& tv);
+		int32 processTimers(unsigned int& timeout);
 	private:
 		SOCKET m_ctlfdr;
 		SOCKET m_ctlfdw;

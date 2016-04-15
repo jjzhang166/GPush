@@ -1,7 +1,7 @@
 #ifndef	EF_LOOP_BUF_H
 #define	EF_LOOP_BUF_H
 
-#include"ef_btype.h"
+#include "ef_btype.h"
 
 namespace ef
 {

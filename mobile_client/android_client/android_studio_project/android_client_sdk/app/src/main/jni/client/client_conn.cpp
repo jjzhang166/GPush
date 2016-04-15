@@ -442,37 +442,48 @@ namespace gim
 		}
 		return -1;
 	}
-	int32 CliConn::processTimers(const struct timeval& tnow, struct timeval& tv)
+	int32 CliConn::processTimers(unsigned int& timeout)
 	{
-		//SDK_LOG(LOG_LEVEL_TRACE, "cid=%s, CliConn::processTimers timer num=%d", m_cid.c_str(), m_timers.size());
-		std::vector<SmartOp> ops;
-		for (TimerList::iterator it = m_timers.begin(); it != m_timers.end();)
-		{
-			TimerKey key = it->first;
-			if (tv_cmp(key.deadline, tnow) > 0)
-			{
-				timeval tvtemp = tv_diff(key.deadline, tnow);
-				if (tv_cmp(tv, tvtemp) > 0)
-				{
-					tv = tvtemp;
-				}
-				break;
-			}
-			else
-			{
-				//SDK_LOG(LOG_LEVEL_TRACE, "op %s time out", key.id.c_str());
-				ops.push_back(it->second);
-				m_timers.erase(it++);
-			}
-		}
+		SDK_LOG(LOG_LEVEL_TRACE, "cid=%s, CliConn::processTimers timer num=%d", m_cid.c_str(), m_timers.size());
 
-		for (std::vector<SmartOp>::iterator it = ops.begin(); it != ops.end(); it++)
-		{
-			if (it->get())
-			{
-				it->get()->OnTimeout(this);
-			}
-		}
+		timeval tval;
+		gettimeofday(&tval, NULL);
+		int32 now = tval.tv_sec;
+
+		do{
+					std::vector<SmartOp> ops;
+					for (TimerList::iterator it = m_timers.begin(); it != m_timers.end();)
+					{
+						TimerKey key = it->first;
+						SDK_LOG(LOG_LEVEL_TRACE, "op=%s, deadline=%d, now=%d", key.id.c_str(), key.deadline, now);
+						if (key.deadline > now)
+						{
+							if (timeout > key.deadline - now)
+							{
+								timeout = key.deadline - now;
+							}
+							break;
+						}
+						else
+						{
+							SDK_LOG(LOG_LEVEL_TRACE, "op %s time out", key.id.c_str());
+							ops.push_back(it->second);
+							m_timers.erase(it++);
+						}
+					}
+
+					if(ops.empty()){
+						break;
+					}
+					for (std::vector<SmartOp>::iterator it = ops.begin(); it != ops.end(); it++)
+					{
+						if (it->get())
+						{
+							it->get()->OnTimeout(this);
+						}
+					}
+		}while(true);
+
 
 
 		return 0;
