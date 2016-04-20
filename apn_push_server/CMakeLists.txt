@@ -1,0 +1,10 @@
+project(ApnPushServ)
+set(CMAKE_VERBOSE_MAKEFILE ON)
+add_definitions("-Wall -g")
+set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
+include_directories(${PROJECT_SOURCE_DIR}/../common/include
+${PROJECT_SOURCE_DIR}/../efnfw ${PROJECT_SOURCE_DIR}/../)
+link_directories(../common/lib/ ../efnfw/lib /usr/local/lib)
+link_libraries(libcommon.a libefnfw.a jsoncpp ssl pthread)
+file(GLOB_RECURSE SRC_LISTS src/*.cpp)
+add_executable(ApnPushServ ${SRC_LISTS})
