@@ -118,6 +118,8 @@ int GConnection::handleCommand(const string& req){
 int32 GConnection::handlePushRequest(const Value& reqv, Value& respv){
 	int32 ret = 0;
 
+	respv["cmd"] = "push_response";
+
 	if(objectValue != reqv.type()){
 		logInfo("ApnPush") << "invalid type, INPUT_FORMAT_ERROR";
 		ret = INPUT_FORMAT_ERROR;
