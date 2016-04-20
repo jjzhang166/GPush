@@ -136,6 +136,19 @@ int ListenCon::handlePushReqeust(const Value& v, Value& respv){
 	respv["sn"] = v["sn"];
 
 	PushRequest preq;
+
+	if (!v["type"].isInt()) {
+		respv["status"] = -10;
+		respv["message"] = "type must be int";
+		return -10;
+	}
+
+	if (!v["payload"].isString()) {
+		respv["status"] = -10;
+		respv["message"] = "payload must be string";
+		return -10;
+	}
+
 	preq.set_type(v["type"].asInt());
 	preq.set_payload(v["payload"].asString());
 	preq.set_sn(v["sn"].asString());
