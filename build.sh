@@ -64,4 +64,16 @@ if [ ! -f "$file" ]; then
 fi
 
 echo "Compile push server succeed."
+
+#6. compile apn_push_server
+cd ${base_dir}/apn_push_server && sh ./build.sh > apn_push_server.log 2>&1
+file="${base_dir}/apn_push_server/bin/ApnPushServ"
+
+if [ ! -f "$file" ]; then
+  	echo "Compile apn_push_server faield. pls check apn_push_server.log"
+	exit 0
+fi
+
+echo "Compile apn ush server succeed."
+
 #6. test client 
