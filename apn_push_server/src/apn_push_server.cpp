@@ -151,6 +151,8 @@ int32 GConnection::handlePushRequest(const Value& reqv, Value& respv){
 	if (snv.type() == stringValue) {
 		sn = snv.asString();
 	}
+	respv["sn"] = snv;
+
 	ApnClient* c = APNConn::get();
 	if(c){
 		ret = c->pushMessage(token, sn, expriy, payload);
