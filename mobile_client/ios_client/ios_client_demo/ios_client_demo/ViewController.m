@@ -31,7 +31,7 @@
         });
         
     }];
-    int i= [c login:@"192.168.200.153" srvport:13000 cid:@"testios" version:@"1.0" token:@"aaa"];
+    int i= [c login:@"192.168.200.16" srvport:13000 cid:@"testios" version:@"1.0" token:@"aaa"];
     NSLog(@"%d",i);
 }
 

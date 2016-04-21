@@ -6,7 +6,7 @@
 #include "opbase.h"
 #include <string>
 #include <map>
-
+//管理链接
 using namespace ef;
 namespace gim
 {

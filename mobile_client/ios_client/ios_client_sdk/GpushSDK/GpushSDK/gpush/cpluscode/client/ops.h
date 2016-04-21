@@ -11,6 +11,7 @@ using namespace ef;
 #define KEEPALIVE_TIMEOUT 60
 
 #define LOGIN_OP_SN "Login"
+#define PUSH_OP_SN "Push"
 namespace gim
 {
 	class EventLoop;
