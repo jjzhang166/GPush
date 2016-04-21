@@ -44,14 +44,24 @@ int MainConfig::parseFromJson(const Json::Value& root){
 		Type = root["Type"].asInt();
 	}
 
+	if (Type <= 0) {
+		return -1;
+	}
+
 	if (root["ThreadCount"].isInt()) {
 		ThreadCount = root["ThreadCount"].asInt();
+	}
+	
+	if (ThreadCount <= 0) {
+		return -2;
 	}
 
 	if (root["ListenPort"].isInt()) {
 		ListenPort = root["ListenPort"].asInt();
-	} else {
-		ListenPort = -1;
+	}
+
+	if (ListenPort <= 0) {
+		return -3;
 	}
 
 	if (root["ZkUrl"].isString()) {
