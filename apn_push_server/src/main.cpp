@@ -96,15 +96,18 @@ int main(int argc, char* const* argv){
 		return -1;
 	}
 	
-
+	std::cout << "config:" << config << std::endl;
 
 	Settings *pSettings = Singleton<Settings>::instance();
 
-	if (!pSettings->load(config.data())) {
+	int ret = pSettings->load(config.data());
+	if (ret < 0) {
 		std::cout << "load setting file:" << config 
-			<< ", fail\n";
+			<< ", fail, ret:" << ret << std::endl;
 		return 1;
 	}	
+
+	pSettings->print();
 
 	if(dm){
 		ef::daemonize();

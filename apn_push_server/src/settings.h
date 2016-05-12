@@ -16,9 +16,10 @@ class Settings
 {
 public:
 	Settings();
-	bool init();
-	bool load(const char *filename);
+	int init();
+	int load(const char *filename);
 
+	void print() const;
 public:
 	std::string ListenIp;
 	int ListenPort;

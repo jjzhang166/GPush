@@ -20,7 +20,7 @@ Settings::Settings()
 	init();
 }
 
-bool
+int
 Settings::init()
 {
 	ListenIp = "0.0.0.0";
@@ -29,12 +29,13 @@ Settings::init()
 	ThreadCount = 6;
 
 	Daemon = false;
+	ReconnectSpan = 10;
 	
 	return true;
 }
 
 
-bool
+int
 Settings::load(const char *filename)
 {
 	fstream ifs;
@@ -78,8 +79,8 @@ Settings::load(const char *filename)
 		return -6;
 	}
 
-	if (root["NetLogLevel"].isString()) {
-		NLogLevel = getStrLevel(root["NetLogLevel"].asString().data()); 
+	if (root["NLogLevel"].isString()) {
+		NLogLevel = getStrLevel(root["NLogLevel"].asString().data()); 
 	} else {
 		return -7;
 	}
@@ -98,9 +99,7 @@ Settings::load(const char *filename)
 	
 	if (root["ReconnectSpan"].isInt()) {
 		ReconnectSpan = root["ReconnectSpan"].isInt();
-	} else {
-		return -11;
-	}
+	} 
 
 	if (root["APNSAddr"].isString()) {
 		APNSAddr = root["APNSAddr"].asString();
@@ -127,7 +126,23 @@ Settings::load(const char *filename)
 	}
 	
 	
-	return true;
+	return 0;
+}
+
+void Settings::print() const{
+	std::cout << "ListenIp:" << ListenIp << std::endl;
+	std::cout << "ListenPort:" << ListenPort << std::endl;
+	std::cout << "ThreadCount:" << ThreadCount << std::endl;
+	std::cout << "Id:" << Id << std::endl;
+	std::cout << "NLogLevel:" << NLogLevel << std::endl;
+	std::cout << "NLogPath:" << NLogPath << std::endl;
+	std::cout << "LogConfig:" << LogConfig << std::endl;
+	std::cout << "ReconnectSpan:" << ReconnectSpan << std::endl;
+	std::cout << "APNSAddr:" << APNSAddr << std::endl;
+	std::cout << "APNSPort:" << APNSPort << std::endl;
+	std::cout << "APNSCert:" << APNSCert << std::endl;
+	std::cout << "APNSKey:" << APNSKey << std::endl;
+	std::cout << "APNSPass:" << APNSPass << std::endl;
 }
 
 }

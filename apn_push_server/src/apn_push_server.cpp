@@ -120,16 +120,15 @@ int32 GConnection::handlePushRequest(const Value& reqv, Value& respv){
 
 	respv["cmd"] = "push_response";
 
-	if(objectValue != reqv.type()){
-		logInfo("ApnPush") << "invalid type, INPUT_FORMAT_ERROR";
-		ret = INPUT_FORMAT_ERROR;
-		return ret;
-	}
 
 	std::string token;
 	Value tkv = reqv.get("token", "");
 	if(tkv.type() == stringValue){
 		token = tkv.asString();
+	} else {
+		respv["status"] = -10;
+		respv["message"] = "token must be string";
+		return -10;
 	}
 
 	int32 expriy = 0;
@@ -139,19 +138,30 @@ int32 GConnection::handlePushRequest(const Value& reqv, Value& respv){
 	}else if(expv.type() == stringValue){
 		expriy = atoi(expv.asString().data());
 	}
+
 	std::string payloadb64; 
 	Value dtv = reqv.get("payload", "");
 	if(dtv.type() == stringValue){
 		payloadb64 = dtv.asString();
+	} else {
+		respv["status"] = -10;
+		respv["message"] = "payload must be string";
+		return -10;
 	}
+
 	std::string payload = base64Decode(payloadb64);
 
-	std::string sn;
 	Value snv = reqv.get("sn", "");
-	if (snv.type() == stringValue) {
-		sn = snv.asString();
-	}
 	respv["sn"] = snv;
+
+	string sn;
+	if (snv.type() == snv.type()) {
+		sn = snv.asString();
+	} else {
+		respv["status"] = -10;
+		respv["message"] = "sn must be string";
+		return -10;
+	}
 
 	ApnClient* c = APNConn::get();
 	if(c){
