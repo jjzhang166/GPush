@@ -30,6 +30,7 @@ Settings::init()
 
 	Daemon = false;
 	ReconnectSpan = 10;
+	APNSPort = 2195;
 	
 	return true;
 }
@@ -92,13 +93,13 @@ Settings::load(const char *filename)
 	}
 
 	if (root["Id"].isInt()) {
-		Id = root["Id"].isInt();
+		Id = root["Id"].asInt();
 	} else {
 		return -10;
 	}
 	
 	if (root["ReconnectSpan"].isInt()) {
-		ReconnectSpan = root["ReconnectSpan"].isInt();
+		ReconnectSpan = root["ReconnectSpan"].asInt();
 	} 
 
 	if (root["APNSAddr"].isString()) {
@@ -106,6 +107,10 @@ Settings::load(const char *filename)
 	} else {
 		return -12;
 	}
+
+	if (root["APNSPort"].isInt()) {
+		APNSPort = root["APNSPort"].asInt();
+	} 
 		
 	if (root["APNSCert"].isString()) {
 		APNSCert = root["APNSCert"].asString();
