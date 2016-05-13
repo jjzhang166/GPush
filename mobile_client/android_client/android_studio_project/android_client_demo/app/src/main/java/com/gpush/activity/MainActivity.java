@@ -9,8 +9,10 @@ import org.json.JSONObject;
 import com.gim.GMsg;
 import com.gpush.msg.GClientBox;
 import com.gpush.config.Config;
+import com.gpush.service.Bootstrap;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -26,24 +28,12 @@ public class MainActivity extends Activity {
 	private List<String> list;
 	
 	private Handler mHandler;
-
+	private Intent intent = null;
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		Bootstrap.startAlwaysOnService(this, "Main");
 
-		mHandler = new Handler(){
-				public void handleMessage(Message msg) {
-					onNotify(msg);
-					super.handleMessage(msg); 
-				}
-		};
-		GClientBox.instance().getRouter().setHandler(mHandler);
-		
-		GClientBox
-				.instance()
-				.getClient()
-				.login(Config.SRVIP, Config.SRVPORT, Config.CLIVERSION,
-						Config.UID, "ss");
 		listView = new ListView(this);
 		list = new LinkedList<String>();
 		list.add("GPush Demo");
@@ -60,39 +50,4 @@ public class MainActivity extends Activity {
 		GClientBox.instance().getClient().logout(Config.UID);
 	}
 
-	public int onNotify(Message msg) {
-		if (msg.what == GMsg.GIM_EVTYPE_PUSH) {
-
-			try {
-				JSONObject j = (JSONObject) msg.obj;
-
-				String m = "msg [sn:" + j.getString("sn") + "] [payload:"
-						+ j.getString("payload") + "]";
-				if (list.size() > 6) {
-					list.clear();
-					list.add("GPush Demo ");
-				}
-				list.add(m);
-				adpter.notifyDataSetChanged();
-			} catch (JSONException e) {
-				Log.e("msg ex:", e.toString());
-			}
-		} else if (msg.what == GMsg.GIM_EVTYPE_LOGIN_OK) {
-			Toast toast = Toast.makeText(getApplicationContext(),
-					"login success", Toast.LENGTH_LONG);
-			toast.setGravity(Gravity.CENTER, 0, 0);
-			toast.show();
-		} else if (msg.what == GMsg.GIM_EVTYPE_LOGIN_FAIL) {
-			Toast toast = Toast.makeText(getApplicationContext(), "login fail",
-					Toast.LENGTH_LONG);
-			toast.setGravity(Gravity.CENTER, 0, 0);
-			toast.show();
-		} else if (msg.what == GMsg.GIM_EVTYPE_LOGIN_FAIL) {
-			Toast toast = Toast.makeText(getApplicationContext(), "logout",
-					Toast.LENGTH_LONG);
-			toast.setGravity(Gravity.CENTER, 0, 0);
-			toast.show();
-		}
-		return 0;
-	}
 }
