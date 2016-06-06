@@ -13,7 +13,9 @@ typedef void (^handerMessage)(NSString * msg);
 + (instancetype)shared;
 
 @property (strong,nonatomic) handerMessage hmsg;
+@property (strong,nonatomic) BOOL is_connect;
 
 -(void)initClientWithHander:(handerMessage)h;
 -(int)login:(NSString *)anSrvip srvport:(int)anSrvport cid:(NSString *)anCid  version:(NSString *)anVersion  token:(NSString *)anToken;
+-(int)loginout:(NSString *)anCid;
 @end

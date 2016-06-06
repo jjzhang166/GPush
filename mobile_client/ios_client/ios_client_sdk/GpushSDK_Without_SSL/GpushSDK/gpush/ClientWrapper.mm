@@ -30,9 +30,6 @@ int calbakFunc(std::string msg)
     cw.hmsg([NSString stringWithCString:msg.c_str() encoding:NSUTF8StringEncoding]);
     return 1;
 }
--(void)hms
-{
-}
 -(void)initClientWithHander:(handerMessage)h
 {
     self.hmsg=h;
@@ -45,6 +42,10 @@ int calbakFunc(std::string msg)
 -(int)login:(NSString *)anSrvip srvport:(int)anSrvport cid:(NSString *)anCid  version:(NSString *)anVersion  token:(NSString *)anToken
 {
     return c->login([anSrvip UTF8String], anSrvport, [anCid UTF8String], [anVersion UTF8String], [anToken UTF8String]);
+}
+-(int)loginout:(NSString *)anCid
+{
+    return c->disconnect([anCid UTF8String]);
 }
 
 @end

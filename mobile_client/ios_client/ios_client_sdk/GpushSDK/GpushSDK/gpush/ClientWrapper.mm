@@ -46,5 +46,8 @@ int calbakFunc(std::string msg)
 {
     return c->login([anSrvip UTF8String], anSrvport, [anCid UTF8String], [anVersion UTF8String], [anToken UTF8String]);
 }
-
+-(int)loginout:(NSString *)anCid
+{
+    return c->disconnect([anCid UTF8String]);
+}
 @end

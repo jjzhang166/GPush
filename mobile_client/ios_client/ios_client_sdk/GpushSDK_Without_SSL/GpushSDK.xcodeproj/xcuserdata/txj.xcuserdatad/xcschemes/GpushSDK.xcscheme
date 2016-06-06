@@ -33,7 +33,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "D56E566F1CC07E6200E0ACCE"
-               BuildableName = "GpushSDKTests.xctest"
+               BuildableName = "GpushSDK.xctest"
                BlueprintName = "GpushSDKTests"
                ReferencedContainer = "container:GpushSDK.xcodeproj">
             </BuildableReference>

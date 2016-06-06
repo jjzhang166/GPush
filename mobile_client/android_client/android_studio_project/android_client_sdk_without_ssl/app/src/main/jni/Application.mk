@@ -16,7 +16,7 @@ APP_PLATFORM := android-8
 #LOCAL_C_INCLUDES := ${ANDROID_NDK_ROOT}/sources/cxx-stl/stlport/stlport
 
 TARGET_CPU_API := armeabi  arm64-v8a  x86 x86_64 armeabi-v7a
-APP_ABI := armeabi  arm64-v8a  x86 x86_64 armeabi-v7a
+APP_ABI := armeabi  arm64-v8a  x86 x86_64 armeabi-v7a mips mips64
 
 #TARGET_CPU_API :=  armeabi  arm64-v8a  x86 x86_64 mips64
 #APP_ABI := armeabi  arm64-v8a  x86 x86_64 mips64

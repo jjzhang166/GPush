@@ -41,23 +41,21 @@ public class GClientBox {
 	public void init(Context context) {
 		Log.d(TAG, "init");
 		mRouter = new GMsgRouter(context);
-
+		//如果启用加密认证需要解除以下的注释
 		String path = "" ;
+		/*
 		if(!Config.PubKeyFile.isEmpty()){
 			try {
 				path = Environment.getExternalStorageDirectory().getAbsolutePath();
 				copy(context,Config.PubKeyFile,path,Config.PubKeyFile);
 				path=path+"/"+Config.PubKeyFile;
-//				path = context.getDatabasePath(Config.PubKeyFile).getAbsolutePath();
-
-
-
+				path = context.getDatabasePath(Config.PubKeyFile).getAbsolutePath();
 			}
 			catch (Exception ex)
 			{
 
 			}
-		}
+		}*/
 		mClient = new client();
 		mClient.init(mRouter, path);
 		mClient.loglevel(2);

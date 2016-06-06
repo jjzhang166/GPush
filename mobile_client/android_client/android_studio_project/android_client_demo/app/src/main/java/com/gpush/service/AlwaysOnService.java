@@ -61,8 +61,7 @@ public class AlwaysOnService extends BaseService {
 			int timeCount = this.readTimeCount() + 1;
 			this.writeTimeCount(timeCount);
 			int currentEpochTimeInSeconds = (int) (System.currentTimeMillis() / 1000L);
-			Log.v(LOG_TAG, "Count:" + timeCount + " at time:"
-					+ currentEpochTimeInSeconds);
+			Log.v(LOG_TAG, "Count:" + timeCount + " at time:" + currentEpochTimeInSeconds);
 		}
 
 		private int readTimeCount() {

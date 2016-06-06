@@ -385,6 +385,7 @@ namespace gim
 		jev["evtype"] = GIM_EVENT_PUSH;
 		jev["sn"] = svreq.sn();
 		jev["payload"] = svreq.payload();
+		jev["type"] =svreq.type();
 		publish(Json::FastWriter().write(jev));
 
 		PushResponse resp;

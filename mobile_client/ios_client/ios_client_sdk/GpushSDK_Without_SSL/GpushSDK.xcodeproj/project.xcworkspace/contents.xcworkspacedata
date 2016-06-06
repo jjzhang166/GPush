@@ -2,6 +2,6 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "self:GpushSDK.xcodeproj">
+      location = "self:/Users/txj/WorkSpace/Project/GPush/mobile_client/ios_client/ios_client_sdk/GpushSDK_Without_SSL/GpushSDK.xcodeproj">
    </FileRef>
 </Workspace>
