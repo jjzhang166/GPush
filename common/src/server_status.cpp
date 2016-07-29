@@ -47,9 +47,11 @@ int ServerStatus::parseFromJson(const  Json::Value & v){
 			if (!cv["Others"].isNull()) {
 				pc.Others = cv["Others"];
 			}
+
+			Ports.push_back(pc);
+
 		}
 
-		Ports.push_back(pc);
 	}
 
 	if (!v["Properties"].isNull()){
@@ -170,6 +172,7 @@ ServerNode::~ServerNode()
 		m_cli->delSrvNode(this);
 	}
 }
+
 int ServerNode::init(const ServerStatus& s)
 {
 	if (m_cli){
