@@ -101,7 +101,7 @@ if [ $checkret -eq 0 ]; then
 
 	hir_inc_dir="${dst_inc_dir}/hiredis"
 	if [ ! -d "${hir_inc_dir}" ]; then
-	  cd ${dst_inc_dir} && mkdir -p hiredis
+	  cd ${dst_inc_dir} && sudo mkdir -p hiredis
 	fi
 
 	sudo cp ${redis_dir}/deps/hiredis/hiredis.h ${hir_inc_dir}/
@@ -127,9 +127,9 @@ if [ $checkret -eq 0 ]; then
 	cd ${base_dir} && tar xzvf zookeeper-3.4.6.tar.gz > /dev/null
 	cd ${zk_dir}/src/c && ./configure --prefix=/usr/local/ > zk.log 2>&1
 	cd ${zk_dir}/src/c && make > ${base_dir}/zk.log 2>&1
-	cd ${zk_dir}/src/c && make install > ${base_dir}/zk.log 2>&1
-	mkdir -p ${dst_inc_dir}/zookeeper
-	cp -r ${zk_dir}/src/c/include/* ${dst_inc_dir}/zookeeper/
+	cd ${zk_dir}/src/c && sudo make install > ${base_dir}/zk.log 2>&1
+	sudo mkdir -p ${dst_inc_dir}/zookeeper
+	sudo cp -r ${zk_dir}/src/c/include/* ${dst_inc_dir}/zookeeper/
 
 	#check
 	file="${dst_lib_dir}/libzookeeper_mt.a"
@@ -164,9 +164,9 @@ if [ $checkret -eq 0 ]; then
 	echo "Compiling jsoncpp lib....."
 	cd ${base_dir} && tar xzvf jsoncpp-src-0.5.0.tar.gz > /dev/null
 	cd $jsoncpp_dir && ${scons_dir}/bin/scons platform=linux-gcc > ${base_dir}/jsoncpp.log
-	cp -r ${jsoncpp_dir}/include/json ${dst_inc_dir}/
-	cp ${jsoncpp_dir}/libs/linux-gcc*/libjson_linux-gcc*libmt.a ${dst_lib_dir}/libjsoncpp.a
-	cp ${jsoncpp_dir}/libs/linux-gcc*/libjson_linux-gcc*libmt.so ${dst_lib_dir}/libjsoncpp.so
+	sudo cp -r ${jsoncpp_dir}/include/json ${dst_inc_dir}/
+	sudo cp ${jsoncpp_dir}/libs/linux-gcc*/libjson_linux-gcc*libmt.a ${dst_lib_dir}/libjsoncpp.a
+	sudo cp ${jsoncpp_dir}/libs/linux-gcc*/libjson_linux-gcc*libmt.so ${dst_lib_dir}/libjsoncpp.so
 
 	#check
 	file="${dst_lib_dir}/libjsoncpp_mt.a"
