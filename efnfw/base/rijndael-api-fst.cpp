@@ -38,6 +38,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
+#include <iostream>
 
 #include "rijndael-alg-fst.h"
 #include "rijndael-api-fst.h"
@@ -326,6 +327,7 @@ int padDecrypt(cipherInstance *cipher, keyInstance *key,
 		return 0; /* nothing to do */
 	}
 	if (inputOctets % 16 != 0) {
+		std::cout << "inputOctets % 16 != 0" << std::endl;
 		return BAD_DATA;
 	}
 
@@ -342,11 +344,15 @@ int padDecrypt(cipherInstance *cipher, keyInstance *key,
 		/* last block */
 		rijndaelDecrypt(key->rk, key->Nr, input, block);
 		padLen = block[15];
-		if (padLen >= 16) {
+		if (padLen > 16) {
+
+		std::cout << "padLen >= 16" << std::endl;
 			return BAD_DATA;
 		}
 		for (i = 16 - padLen; i < 16; i++) {
 			if (block[i] != padLen) {
+             
+		std::cout << "block[i] != padLen" << std::endl;
 				return BAD_DATA;
 			}
 		}
